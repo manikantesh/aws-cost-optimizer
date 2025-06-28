@@ -1,3 +1,6 @@
+⚠️ This repository is for learning purposes only.  
+Do not attempt to apply these modules to a live AWS environment unless explicitly authorized.
+
 # 🌍 AWS Cost Optimization with Terraform
 
 **Optimize your AWS cloud spend using Terraform and free AWS-native tools.**  
