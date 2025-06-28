@@ -1,0 +1,73 @@
+name: Terraform All Modules
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  run-all-modules:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+      # Uncomment if using session tokens
+      # AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
+
+      - name: Find all modules
+        id: find-modules
+        run: |
+          if [ -d "modules" ]; then
+            find modules -maxdepth 1 -mindepth 1 -type d > module_dirs.txt
+          else
+            echo "No modules directory found." && exit 1
+          fi
+
+      - name: Run Terraform for each module
+        run: |
+          while read module_dir; do
+            echo "\n===== Running $module_dir ====="
+            cd "$module_dir"
+            terraform init -input=false
+            terraform apply -auto-approve -input=false
+            cd -
+          done < module_dirs.txt
+
+  # Reusable workflow for individual modules
+  run-module:
+    if: ${{ false }} # This job is for reuse only, not direct invocation
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
+      - name: Run Terraform for selected module
+        run: |
+          cd ${{ inputs.module_path }}
+          terraform init -input=false
+          terraform apply -auto-approve -input=false
+    inputs:
+      module_path:
+        description: 'Path to the module directory (e.g., modules/ec2-scheduler)'
+        required: true
+        type: string 
