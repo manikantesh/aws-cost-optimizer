@@ -1,0 +1,8 @@
+# CODEOWNERS
+# Specify users or teams responsible for code in this repository.
+# Example:
+# *       @your-github-username
+# /modules/ec2-scheduler/ @your-github-username
+# /modules/s3-lifecycle/   @your-github-username
+# Add your GitHub username or team below:
+*       @manikantesh 
